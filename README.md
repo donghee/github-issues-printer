@@ -27,7 +27,7 @@ const device = new Serial('/dev/ttyACM0', { baudRate: 9600 });
 
 1. GitHub 레포지토리에서 **Settings** > **Webhooks** > **Add webhook** 선택
 2. Webhook 설정:
-   - **Payload URL**: `http://your-server-address:3000/webhook`
+   - **Payload URL**: `http://your-server-address:3000/github-webhook`
    - **Content type**: `application/json`
    - **Secret**: (선택 사항) 보안을 위한 비밀키 설정
    - **Which events would you like to trigger this webhook?**: `Issues` 선택

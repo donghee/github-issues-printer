@@ -60,3 +60,4 @@ const device = new Serial('/dev/ttyACM0', { baudRate: 9600 });
    - 서버가 외부에서 접근 가능한지 확인
    - 방화벽 설정 확인
 
+# github-issues-printer

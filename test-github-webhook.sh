@@ -3,7 +3,7 @@
 # GitHub 이슈 생성 webhook 이벤트를 시뮬레이션하는 스크립트
 
 # 서버 URL
-SERVER_URL="http://localhost:3000/webhook"
+SERVER_URL="http://localhost:3000/github-webhook"
 USER_NAME=donghee
 REPO_NAME=12dna
 ISSUE_NUMBER=1

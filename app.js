@@ -223,8 +223,8 @@ async function printTodo(issue) {
           .align("lt")
           .style("NORMAL")
           .size(1, 1)
-          .text(`- 작성자: ${issue.user} `)
-          .text(`- 작성일: ${new Date(issue.created_at).toLocaleString('ko-KR')}`)
+          .text(`작성자: ${issue.user} `)
+          .text(`작성일: ${new Date(issue.created_at).toLocaleString('ko-KR')}`)
         printer.drawLine().newLine();
         
         // 이슈 본문 출력 (너무 길면 잘라내기)

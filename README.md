@@ -40,7 +40,7 @@ const device = new Serial('/dev/ttyACM0', { baudRate: 9600 });
 서버가 실행 중일 때 테스트 스크립트를 실행하여 프린터 출력을 테스트할 수 있습니다:
 
 ```bash
-./test-webhook.sh
+./test-github-webhook.sh
 ```
 
 ## 보안 고려사항
@@ -59,5 +59,3 @@ const device = new Serial('/dev/ttyACM0', { baudRate: 9600 });
    - GitHub Webhook 설정이 올바른지 확인
    - 서버가 외부에서 접근 가능한지 확인
    - 방화벽 설정 확인
-
-# github-issues-printer

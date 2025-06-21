@@ -163,7 +163,7 @@ async function printIssue(issue) {
           : body;
         
         printer
-          .text(printBody)
+          .text(printBody.replace(/<[^>]*>/g, '')) // HTML 태그 제거
           .align("ct")
         
         // QR 코드 출력 (이슈 URL)

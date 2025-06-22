@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-import {createWriteStream} from 'node:fs';
+import {createWriteStream, writeFileSync} from 'node:fs';
 import {pipeline} from 'node:stream';
 import {promisify} from 'node:util'
 import fetch from 'node-fetch';
@@ -20,7 +20,8 @@ const PORT = process.env.PORT || 3000;
 const SERIAL_PORT = process.env.SERIAL_PORT || '/dev/ttyACM0';
 
 // JSON 요청 처리를 위한 미들웨어
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // GitHub webhook 엔드포인트
 app.post('/github-webhook', async (req, res) => {
@@ -163,7 +164,7 @@ async function printIssue(issue) {
           : body;
         
         printer
-          .text(printBody.replace(/<[^>]*>/g, '')) // HTML 태그 제거
+          .text(printBody.replace(/<[^>]*>/g, '').replace(/(\r?\n){3,}/g, '\n\n').replace(/\n$/, "")) // HTML 태그 제거, 3개 이상의 줄바꿈을 2개로, 마지막 줄바꿈 제거
           .align("ct")
         
         // QR 코드 출력 (이슈 URL)
@@ -257,9 +258,82 @@ async function printTodo(issue) {
   });
 }
 
+async function printImage(base64Image) {
+  const device = new Serial(SERIAL_PORT, { baudRate: 9600 });
+  return new Promise((resolve, reject) => {
+    device.open(async function(err) {
+      if (err) {
+        console.error('프린터 연결 오류:', err);
+        return reject(err);
+      }
+
+      try {
+        const options = { encoding: "EUC-KR" };
+        let printer = new Printer(device, options);
+        printer.align("ct");
+
+        // 이미지 출력
+        // Write the base64 data to a file
+        const temporaryFilePath = join("/tmp", "image.png");
+        const base64ImageString = base64Image.replace(/^data:image\/png;base64,/, "");
+        const filePath = join("/tmp", "image_resized.png");
+        // Save the base64 image to a temporary file
+        writeFileSync(temporaryFilePath, base64ImageString, 'base64');
+
+        await sharp(temporaryFilePath)
+          .resize({ width: 590}) // Resize to fit the printer's width
+          .grayscale()
+          .linear(0.85, -30) // Optional: Increase contrast (adjust values as needed)
+          .png({ colors: 2 }) // Reduce to 2 colors (black and white)
+          .sharpen() // Apply sharpening
+          .toFile(filePath);
+        const image = await Image.load(filePath);
+        printer = await printer.image(image, "d24");
+        
+        printer
+          .newLine()
+          .cut()
+          .close();
+
+        console.log('이미지가 성공적으로 프린터에 출력되었습니다.');
+        resolve();
+      } catch (printErr) {
+        console.error('프린터 출력 오류:', printErr);
+        reject(printErr);
+      }
+    });
+  });
+}
+
+// Image webhook 엔드포인트
+app.post('/image-webhook', async (req, res) => {
+  try {
+    const event = req.headers['x-image-event'];
+    const payload = req.body;
+    console.log('--------------');
+    console.log(`Received Image Webhook: ${event} ${payload.action || ''}`);
+    
+    if (event === 'image' && payload.action === 'uploaded') {
+      console.log('새로운 이미지가 업로드되었습니다:', payload.image.title);
+      
+      // 프린터로 이미지 출력
+      await printImage(payload.image.base64);
+      // console.log('이미지 데이터:', payload.image.base64);
+      
+      res.status(200).send('이미지가 성공적으로 프린터에 출력되었습니다.');
+    } else {
+      res.status(200).send('처리되지 않은 이벤트입니다.');
+    }
+  } catch (error) {
+    console.error('Image Webhook 처리 중 오류 발생:', error);
+    res.status(500).send('내부 서버 오류');
+  }
+});
 
 // 서버 시작
 app.listen(PORT, () => {
   console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
   console.log(`GitHub Webhook URL: http://localhost:${PORT}/github-webhook`);
+  console.log(`Todo Webhook URL: http://localhost:${PORT}/todo-webhook`);
+  console.log(`Image Webhook URL: http://localhost:${PORT}/image-webhook`);
 });

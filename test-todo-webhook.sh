@@ -31,7 +31,7 @@ ISSUE_NUMBER=1
 
 # FleetingNotes 파일에서 TODO 항목을 추출하여 페이로드 생성
 TODO_FILE="$HOME/src/github.com/donghee/notes/FleetingNotes/$(date +%Y-%m-%d).md"
-PAYLOADS=$(cat $TODO_FILE | grep "\- \[.*\]" | grep -v "\[x\]" | jq -R -s -c --arg title "$(date -Idate) 할일" --arg seconds "$(date -Iseconds)" 'split("\n") | map(select(length > 0)) | map({
+PAYLOADS=$(cat $TODO_FILE | grep -E "\- \[ \]|\- \[\]" | jq -R -s -c --arg title "$(date -Idate) 할일" --arg seconds "$(date -Iseconds)" 'split("\n") | map(select(length > 0)) | map({
   "action": "opened",
   "issue": {
     "title": $title ,

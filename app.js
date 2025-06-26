@@ -211,6 +211,8 @@ async function printTodo(issue) {
         let printer = new Printer(device, options);
         printer.align("ct");
 
+        const tags = issue.body.match (/#[0-9a-zA-Z가-힣]+/g) || [];
+
         // 헤더 출력
         printer
           .font("a")
@@ -220,6 +222,13 @@ async function printTodo(issue) {
           .text(`${issue.title} >`)
           .newLine();
 
+        if (tags.length > 0) {
+          printer
+            .align("lt")
+            .size(1, 1)
+            .text(`프로젝트: ${tags.join(', ')}`)
+        }
+
         printer
           .align("lt")
           .style("NORMAL")
@@ -228,8 +237,8 @@ async function printTodo(issue) {
           .text(`작성일: ${new Date(issue.created_at).toLocaleString('ko-KR')}`)
         printer.drawLine().newLine();
         
-        // 이슈 본문 출력 (너무 길면 잘라내기)
-        const body = issue.body || '내용 없음';
+        // 이슈 본문 출력 (태그 삭제, 너무 길면 잘라내기)
+        const body = issue.body.replace(/#[0-9a-zA-Z가-힣]+/g, '').trim() || '내용 없음';
         const maxLength = 500; // 최대 출력 길이
         const printBody = body.length > maxLength 
           ? body.substring(0, maxLength) + '...(생략됨)' 

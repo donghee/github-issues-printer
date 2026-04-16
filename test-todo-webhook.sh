@@ -3,7 +3,7 @@
 # TODO 생성 webhook 이벤트를 시뮬레이션하는 스크립트
 
 # 서버 URL
-SERVER_URL="http://localhost:3000/todo-webhook"
+PRINTER_WEBHOOK_URL="${PRINTER_WEBHOOK_URL:=http://localhost:3000/todo-webhook}"
 USER_NAME=donghee
 ISSUE_NUMBER=1
 
@@ -27,7 +27,7 @@ ISSUE_NUMBER=1
 #  -H "Content-Type: application/json" \
 #  -H "X-Todo-Event: issues" \
 #  -d "$PAYLOAD" \
-#  $SERVER_URL
+#  $PRINTER_WEBHOOK_URL
 
 # FleetingNotes 파일에서 TODO 항목을 추출하여 페이로드 생성
 TODO_FILE="$HOME/src/github.com/donghee/notes/FleetingNotes/$(date +%Y-%m-%d).md"
@@ -50,7 +50,7 @@ echo "$PAYLOADS" | jq -c '.[]' | while read -r payload; do
     -H "Content-Type: application/json" \
     -H "X-Todo-Event: issues" \
     -d "$payload" \
-    $SERVER_URL
+    $PRINTER_WEBHOOK_URL
   echo ""
   # 요청 간 짧은 지연 시간 추가
   sleep 0.5

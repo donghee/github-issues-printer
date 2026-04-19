@@ -23,6 +23,16 @@ const SERIAL_PORT = process.env.SERIAL_PORT || '/dev/ttyACM0';
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
+// 상태 확인 엔드포인트
+app.get('/', (req, res) => {
+  res.send('GitHub Webhook 서버가 실행 중입니다.');
+  // supported endpoints
+  res.send('Supported Webhook Endpoints:');
+  res.send(`- GitHub Issues Webhook: http://localhost:${PORT}/github-webhook`);
+  res.send(`- Todo Issues Webhook: http://localhost:${PORT}/todo-webhook`);
+  res.send(`- Image Upload Webhook: http://localhost:${PORT}/image-webhook`);
+});
+
 // GitHub webhook 엔드포인트
 app.post('/github-webhook', async (req, res) => {
   try {
@@ -49,12 +59,7 @@ app.post('/github-webhook', async (req, res) => {
   }
 });
 
-// 상태 확인 엔드포인트
-app.get('/', (req, res) => {
-  res.send('GitHub Webhook 서버가 실행 중입니다.');
-});
-
-// GitHub webhook 엔드포인트
+// Todo webhook 엔드포인트
 app.post('/todo-webhook', async (req, res) => {
   try {
     const event = req.headers['x-todo-event'];
@@ -80,6 +85,30 @@ app.post('/todo-webhook', async (req, res) => {
   }
 });
 
+// Image webhook 엔드포인트
+app.post('/image-webhook', async (req, res) => {
+  try {
+    const event = req.headers['x-image-event'];
+    const payload = req.body;
+    console.log('--------------');
+    console.log(`Received Image Webhook: ${event} ${payload.action || ''}`);
+    
+    if (event === 'image' && payload.action === 'uploaded') {
+      console.log('새로운 이미지가 업로드되었습니다:', payload.image.title);
+      
+      // 프린터로 이미지 출력
+      await printImage(payload.image.base64);
+      // console.log('이미지 데이터:', payload.image.base64);
+      
+      res.status(200).send('이미지가 성공적으로 프린터에 출력되었습니다.');
+    } else {
+      res.status(200).send('처리되지 않은 이벤트입니다.');
+    }
+  } catch (error) {
+    console.error('Image Webhook 처리 중 오류 발생:', error);
+    res.status(500).send('내부 서버 오류');
+  }
+});
 
 // 이슈 내용을 프린터로 출력하는 함수
 async function printIssue(issue) {
@@ -313,31 +342,6 @@ async function printImage(base64Image) {
     });
   });
 }
-
-// Image webhook 엔드포인트
-app.post('/image-webhook', async (req, res) => {
-  try {
-    const event = req.headers['x-image-event'];
-    const payload = req.body;
-    console.log('--------------');
-    console.log(`Received Image Webhook: ${event} ${payload.action || ''}`);
-    
-    if (event === 'image' && payload.action === 'uploaded') {
-      console.log('새로운 이미지가 업로드되었습니다:', payload.image.title);
-      
-      // 프린터로 이미지 출력
-      await printImage(payload.image.base64);
-      // console.log('이미지 데이터:', payload.image.base64);
-      
-      res.status(200).send('이미지가 성공적으로 프린터에 출력되었습니다.');
-    } else {
-      res.status(200).send('처리되지 않은 이벤트입니다.');
-    }
-  } catch (error) {
-    console.error('Image Webhook 처리 중 오류 발생:', error);
-    res.status(500).send('내부 서버 오류');
-  }
-});
 
 // 서버 시작
 app.listen(PORT, () => {

@@ -3,7 +3,10 @@
 # TODO 생성 webhook 이벤트를 시뮬레이션하는 스크립트
 
 # 서버 URL
-PRINTER_WEBHOOK_URL="${PRINTER_WEBHOOK_URL:=http://localhost:3000/todo-webhook}"
+PRINTER_SERVER_URL="${PRINTER_SERVER_URL:=http://localhost:3000}"
+#PRINTER_WEBHOOK_URL="${PRINTER_WEBHOOK_URL:=http://localhost:3000/todo-webhook}"
+PRINTER_WEBHOOK_URL="${PRINTER_WEBHOOK_URL:=$PRINTER_SERVER_URL/todo-webhook}"
+
 USER_NAME=donghee
 ISSUE_NUMBER=1
 

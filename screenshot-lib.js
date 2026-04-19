@@ -1,7 +1,9 @@
 import { chromium } from 'playwright';
 import fetch from 'node-fetch';
 
-const PRINTER_WEBHOOK_URL  = process.env.PRINTER_WEBHOOK_URL || 'http://localhost:3000/image-webhook';
+const PRINTER_SERVER_URL = process.env.PRINTER_SERVER_URL || 'http://localhost:3000';
+//const PRINTER_WEBHOOK_URL  = process.env.PRINTER_WEBHOOK_URL || 'http://localhost:3000/image-webhook';
+const PRINTER_WEBHOOK_URL  = process.env.PRINTER_WEBHOOK_URL || `${PRINTER_SERVER_URL}/image-webhook`;
 
 export async function takeScreenshot(url, locator, injectStyle) {
   const browser = await chromium.launch();
